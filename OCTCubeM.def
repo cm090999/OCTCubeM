@@ -1,0 +1,49 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%post
+    # Install dependencies
+    apt-get update && apt-get install -y \
+        wget \
+        bzip2 \
+        git \
+        build-essential \
+        curl \
+        ca-certificates \
+        libglib2.0-0 \
+        libxext6 \
+        libsm6 \
+        libxrender1 \
+        libffi-dev \
+        libnss3 \
+        libx11-6 \
+        libxtst6 \
+        libxcb1 \
+        && apt-get clean
+
+    # Install Miniconda
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
+    bash /tmp/miniconda.sh -b -p /opt/conda
+    rm /tmp/miniconda.sh
+
+    # Setup PATH for conda
+    export PATH="/opt/conda/bin:$PATH"
+
+    # Create conda environment
+    /opt/conda/bin/conda create -n octcube python=3.10 -y
+
+    # Install Python packages
+    /opt/conda/bin/conda run -n octcube pip install --upgrade pip packaging ninja
+    # flash-attn will likely fail without CUDA in container, include it only if you have NVCC
+    # /opt/conda/bin/conda run -n octcube pip install flash-attn==2.5.2 --no-build-isolation
+
+%environment
+    export PATH="/opt/conda/bin:$PATH"
+    export CONDA_DEFAULT_ENV=octcube
+
+%labelsj
+    Maintainer Colin
+    Description "OCTCubeM environment with Python 3.10 and Conda"
+
+%runscript
+    exec /opt/conda/bin/conda run -n octcube "$@"

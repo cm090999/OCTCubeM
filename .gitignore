@@ -176,3 +176,5 @@ dmypy.json
 
 IDRiD_data
 
+# apptainer
+*.sif
