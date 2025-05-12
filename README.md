@@ -1,3 +1,37 @@
+# Our Additions
+## Apptainer
+
+Layererd build:
+```sh
+apptainer build octcube-base.sif octcube-base.def
+```
+```sh
+apptainer build octcube.sif octcube.def
+```
+
+1. **Build the container**
+```sh
+apptainer build --force octcube.sif OCTCubeM.def
+```
+
+2. **Run the container**
+Run the command below from the repository ```path/to/repo/OCTCubeM```
+```sh
+apptainer shell octcube.sif
+```
+
+3. **To run a notebook**
+```sh
+jupyter notebook --no-browser --ip=0.0.0.0 --port=8888 --allow-root
+```
+
+If the notebook is called through an ssh connection, on the local device run the following in a new terminal:
+```sh
+ssh -L 8888:localhost:8888 name@addr
+```
+
+
+# Original Readme
 ## OCTCube-M - A multi-modal foundation model for OCT and *en face* retinal imaging
 
 
