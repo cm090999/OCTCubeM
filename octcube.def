@@ -1,0 +1,72 @@
+Bootstrap: localimage
+From: octcube-base.sif
+
+%files
+    requirement_no_torch.txt /opt/requirement_no_torch.txt
+
+%post
+    # Use bash for sourcing conda (avoid /bin/sh issue)
+    bash -c "
+        echo 'Sourcing conda and activating octcube environment for %post...'
+        source /opt/conda/etc/profile.d/conda.sh
+        conda activate octcube
+        echo 'Activation complete for %post.'
+
+        echo 'Installing torch'
+        pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+
+        echo 'Installing packages from requirement_no_torch.txt first...'
+        pip install -r /opt/requirement_no_torch.txt
+
+        echo 'Installing flash_attn'
+        pip install ninja packaging notebook matplotlib
+        pip install flash-attn==2.5.2 --no-build-isolation
+    "
+
+%environment
+    # Ensure the octcube environment's bin is prioritized in PATH
+    export PATH=/opt/conda/envs/octcube/bin:$PATH
+    # Source conda.sh to make 'conda activate' available if needed by user scripts
+    source /opt/conda/etc/profile.d/conda.sh
+    # Activate the environment. This sets other env vars and ensures shell integration.
+    # For non-interactive shells (like %test or runtime), direct PATH manipulation is often more robust.
+    # However, 'conda activate' is good practice for ensuring full environment setup.
+    conda activate octcube
+
+%test
+    # Use bash for sourcing conda (avoid /bin/sh issue)
+    bash -c "
+        echo '--- Running Apptainer %test Section ---'
+        echo 'Sourcing conda and activating octcube environment for %test...'
+        # It is crucial that the environment is properly activated for the test commands.
+        # The %environment block should handle this for the runtime,
+        # but for %test, we ensure it explicitly here.
+        export PATH=/opt/conda/envs/octcube/bin:$PATH
+        source /opt/conda/etc/profile.d/conda.sh
+        conda activate octcube
+        echo 'Activation complete for %test.'
+        echo \"\"
+        echo 'Current PATH:'
+        echo \"$PATH\"
+        echo \"\"
+        echo 'Which python:'
+        which python
+        echo \"\"
+        echo 'Python version:'
+        python --version
+        echo \"\"
+        echo 'Conda environment list:'
+        conda env list
+        echo \"\"
+        echo 'Checking for torch in current environment (octcube) using conda list:'
+        conda list torch
+        echo \"\"
+        echo 'Checking for torch in current environment (octcube) using pip list:'
+        pip list | grep -i torch || echo \"torch not found in pip list for test\"
+        echo \"\"
+        echo 'Attempting to import torch using the environment python:'
+        # Using the python from the activated environment path explicitly for robustness
+        # Corrected f-string quoting for bash -c "..." context
+        /opt/conda/envs/octcube/bin/python -c 'import torch; print(f\"PyTorch version: {torch.__version__} successfully imported.\")'
+        echo '--- Apptainer %test Section End ---'
+    "
