@@ -17,7 +17,7 @@ apptainer build --force octcube.sif OCTCubeM.def
 2. **Run the container**
 Run the command below from the repository ```path/to/repo/OCTCubeM```
 ```sh
-apptainer shell octcube.sif
+apptainer shell --nv octcube.sif
 ```
 
 3. **To run a notebook**
